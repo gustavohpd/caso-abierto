@@ -1,151 +1,223 @@
 <!DOCTYPE html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Caso abierto</title>
-<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NovaTech: Dibujo exprés</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--bg:#090c13;--ink:#f4efe2;--mut:#8a94a8;--gold:#d9b44a;--red:#e5484d;--ok:#3ecf8e;--panel:#121a2a;--panel2:#1a263d;--line:#26365a}
+:root{--bg:#000d1f;--panel:#06182f;--line:#12457c;--blue:#0a84ff;--cyan:#00a6ff;--tx:#e8eef7;--mu:#8fa6c4;--bad:#d64550}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;color:var(--ink);font:clamp(14px,1.35vw,20px)/1.45 system-ui,"Segoe UI",sans-serif;background:linear-gradient(rgba(9,12,19,.9),rgba(9,12,19,.96)),repeating-linear-gradient(0deg,transparent 0 39px,#16203a 39px 40px),repeating-linear-gradient(90deg,transparent 0 39px,#16203a 39px 40px),var(--bg)}
-.siren{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),#3b82f6,var(--red));background-size:200% 100%;animation:sir 3s linear infinite;z-index:9}@keyframes sir{to{background-position:200% 0}}
-#ctl{position:fixed;bottom:10px;right:10px;display:flex;gap:6px;z-index:8;opacity:.75}#ctl button,#ctl label{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.75em;letter-spacing:.05em}#ctl .off{opacity:.35}
-.wrap{max-width:1400px;margin:0 auto;padding:22px 20px}
-h1{font:800 clamp(38px,7vw,88px)/1 Georgia,serif;margin:.1em 0;letter-spacing:.06em;text-transform:uppercase}h1 em{color:var(--gold);font-style:normal}h2{font-family:Georgia,serif;margin:.2em 0}
-.c{text-align:center}.mut{color:var(--mut)}.cap{font-size:.7em;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:700}
-.box{background:linear-gradient(180deg,var(--panel),#0f1624);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px auto;max-width:960px;text-align:left}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.g2>div{background:var(--panel2);border-radius:10px;padding:12px;font-size:.9em}.g2 b{display:block;color:var(--gold);margin-bottom:3px}
-select,input{font:inherit;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:#0b1220;color:var(--ink);width:100%}
-.row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}.row label{flex:1;min-width:180px}
-.tm{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.tm label{display:flex;gap:8px;align-items:center}.tm i{width:12px;height:30px;border-radius:3px;flex:none}
-button.go{font:800 1em system-ui;letter-spacing:.12em;cursor:pointer;border:0;border-radius:10px;padding:13px 26px;color:#171100;background:linear-gradient(180deg,#f1d27a,var(--gold));box-shadow:0 5px 0 #7d6314;transition:.1s}button.go:hover{transform:translateY(-2px)}button.go:active{transform:translateY(3px);box-shadow:0 2px 0 #7d6314}button.go:disabled{opacity:.4}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:var(--panel2);border-left:5px solid var(--c);border-radius:8px;padding:5px 12px;font-weight:700}.chip b{color:var(--gold);margin-left:6px}
-.ring{position:relative;width:78px;height:78px}.ring svg{transform:rotate(-90deg)}.ring circle{fill:none;stroke-width:9}.ring .bg{stroke:var(--panel2)}.ring .fg{stroke:var(--gold);stroke-dasharray:276.5;transition:stroke-dashoffset 1s linear}.ring.low .fg{stroke:var(--red)}.ring span{position:absolute;inset:0;display:grid;place-items:center;font:800 1.5em Georgia,serif}
-.tg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
-.tp{background:#f2ead4;color:#231b0b;border-radius:10px;border-top:8px solid var(--c);padding:12px;box-shadow:0 10px 26px rgba(0,0,0,.45)}
-.th{display:flex;justify-content:space-between;gap:8px;font-size:.85em;border-bottom:1px solid #c9bb93;padding-bottom:6px;margin-bottom:8px}.th b{font:800 1.15em Georgia,serif;color:var(--c);filter:brightness(.7)}
-.dc{font:.95em/1.95 Georgia,serif}
-.tk{border-radius:3px;padding:1px 3px;border-bottom:2px solid transparent;background:rgba(217,180,74,calc(var(--a,0)*.6))}
-.tk.m{background:#111;color:#111;border-color:#111}.tk.hit{outline:2px solid var(--ok)}.tk.miss{outline:2px solid var(--red);background:#e5484d33;color:#231b0b}.tk.over{outline:2px solid #f08a24;background:#f08a2455;color:#231b0b}
-.rw{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 9px;margin:5px 0;border-radius:7px;background:#e4dabb;border-left:5px solid #b9a974;font-size:.9em}.rw b{font-weight:600;color:#5a4c24;text-align:right}.rw i{display:none;grid-column:1/-1;font:800 .7em system-ui;letter-spacing:.15em;color:#b3262b}
-.rw.m{background:#f6c9c9;border-left-color:var(--red)}.rw.m i{display:block}.rw.hit{background:#bfeccf;border-left-color:var(--ok)}.rw.hit i{display:block;color:#116b3b}.rw.miss{background:#fff;border:2px solid var(--red)}.rw.over{background:#f9d7b0;border-left-color:#f08a24}.rw.over i{display:block;color:#a35200}
-.pts{font:800 1.5em Georgia,serif;color:var(--gold)}.dl{font-size:.5em;color:var(--ok);vertical-align:middle}
-.ver{margin-top:12px;border-left:5px solid var(--gold);background:var(--panel);border-radius:10px;padding:12px 16px}
-.ov{position:fixed;inset:0;background:rgba(5,8,14,.94);z-index:7;display:grid;place-items:center;text-align:center;animation:pop .3s}.ov h2{font-size:clamp(28px,5vw,60px)}@keyframes pop{from{opacity:0;transform:translateY(8px)}}
-.lob{display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start}@media(max-width:800px){.lob{grid-template-columns:1fr}}
-#qr{background:#fff;padding:12px;border-radius:12px;display:inline-block}#qr img{display:block}
-.pl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.pl span{background:var(--panel2);border-radius:20px;padding:3px 12px;font-size:.85em}
-.rk{display:flex;justify-content:space-between;align-items:center;background:var(--panel2);border-left:8px solid var(--c);border-radius:10px;padding:14px 20px;margin:8px 0;font-weight:800;font-size:1.2em}.rk:first-child{background:#4d3f0e;border:2px solid var(--gold);border-left:8px solid var(--c)}
-.pw{max-width:560px;margin:0 auto}.pw .tp{margin:10px 0}.tm2{display:grid;gap:8px;margin:10px 0}.tm2 button{font:700 1em system-ui;border:0;border-radius:10px;padding:14px;color:#fff;background:var(--c);cursor:pointer}.tm2 button.sel{outline:4px solid #fff}
-.pw .tk,.pw .rw{cursor:pointer;-webkit-tap-highlight-color:transparent}.pw .dc{font-size:1.05em}
-.sm{font:700 .8em system-ui;border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer}.tp .tk,.tp .rw{cursor:pointer}
-#cf{position:fixed;inset:0;pointer-events:none;z-index:10}
-</style></head><body>
-<div class="siren"></div><div id="ctl"><button id="bm">Música</button><button id="bs">Sonido</button><label>Cargar audio<input id="fm" type="file" accept="audio/*" hidden></label></div>
-<canvas id="cf"></canvas><div class="wrap" id="app"></div>
+body{margin:0;min-height:100vh;color:var(--tx);font-family:Montserrat,system-ui,sans-serif;background:radial-gradient(900px 500px at 85% -10%,#0a3a7a66,transparent),var(--bg)}
+h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,serif;font-weight:400}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+.bar{width:56px;height:4px;background:var(--blue);margin-bottom:14px}
+h1{font-size:clamp(34px,6vw,56px);margin:0 0 6px}
+h2{font-size:clamp(24px,4vw,34px);margin:0}
+.sub{color:var(--mu);margin:0 0 20px;line-height:1.5}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--mu);margin-bottom:6px}
+input[type=number],input[type=text],select{width:100%;background:#00122a;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:12px;font:inherit;font-size:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:16px 0}
+button{font:inherit;font-weight:600;cursor:pointer;color:var(--tx);background:#0a2447;border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+button:hover{border-color:var(--cyan)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button.p{background:var(--blue);border-color:var(--blue);color:#fff}
+button.sel{background:var(--blue);border-color:var(--cyan);color:#fff}
+button.neg.sel{background:var(--bad);border-color:var(--bad)}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+.scores{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.sc{flex:1;min-width:110px;background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--tc);border-radius:8px;padding:10px 14px}
+.sc small{color:var(--mu);display:block}
+.sc b{font-family:'Playfair Display',Georgia,serif;font-size:34px;font-weight:400;color:var(--tc)}
+.timer{font-family:'Playfair Display',Georgia,serif;font-size:clamp(90px,24vw,200px);line-height:1;text-align:center;font-variant-numeric:tabular-nums;margin:10px 0}
+.timer.low{color:var(--bad)}
+.concept{font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,6vw,54px);line-height:1.2;text-align:center;padding:26px 12px;border:1px dashed var(--cyan);border-radius:10px;margin:14px 0;color:var(--cyan);min-height:120px;display:flex;align-items:center;justify-content:center}
+.concept.hidden{color:var(--mu);border-color:var(--line);font-size:clamp(20px,4vw,28px);font-style:italic}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row h3{margin:0;font-size:24px;color:var(--tc,var(--tx));min-width:110px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mu);font-weight:600;font-size:13px}
+.win td{color:var(--cyan);font-weight:700}
+dt{color:var(--cyan);font-weight:600;margin-top:12px}
+dd{margin:2px 0 0;color:var(--mu);line-height:1.5}
+.rule{color:var(--mu);font-size:14px;line-height:1.6}
+#qr{background:#fff;padding:14px;border-radius:8px;width:max-content;max-width:100%;margin:12px 0}
+</style>
+</head>
+<body>
+<main id="app"></main>
 <script>
-const $=s=>document.querySelector(s),app=$("#app"),COL=["#e5484d","#3b82f6","#e0b43a","#2fb671","#a855f7","#f08a24"];
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-/* ===== AUDIO (todo sintetizado, sin archivos) ===== */
-let AC,mus,sfx,NB,musicOn=true,sfxOn=true,custom=null,mode="intro",sched=null,step=0,nextT=0;
-const mtof=m=>440*2**((m-69)/12);
-function initAudio(){if(AC)return;AC=new(window.AudioContext||window.webkitAudioContext)();const m=AC.createGain();m.connect(AC.destination);mus=AC.createGain();sfx=AC.createGain();mus.connect(m);sfx.connect(m);sfx.gain.value=.8;NB=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;setMode(mode)}
-function tone(f,t,d,ty="sine",v=.2,dst=sfx,f2){const o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(dst);o.start(t);o.stop(t+d+.02)}
-function noise(t,d,v,ty,fr,dst=sfx){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=NB;f.type=ty;f.frequency.value=fr;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);s.connect(f);f.connect(g);g.connect(dst);s.start(t);s.stop(t+d)}
-/* Groove original (estilo "drama de oficina"): bajo + batería + acordes */
-const ROOT=[40,40,36,38],BASS=[0,-1,-1,0,-1,7,-1,0,-1,-1,10,-1,12,-1,7,-1];
-function play16(s,t){const st=s%16,bar=(s>>4)%4,r=ROOT[bar],v=mode==="game"?.8:1;
- if([0,6,10].includes(st)||(mode==="tense"&&st%4==0)){tone(150,t,.16,"sine",.9*v,mus,45)}
- if(st==4||st==12){noise(t,.14,.5*v,"bandpass",1800,mus);tone(190,t,.08,"triangle",.3*v,mus)}
- if(st%2==0)noise(t,.04,(st%4==2?.22:.12)*v,"highpass",8000,mus);if(mode==="tense"&&st%2)noise(t,.03,.12,"highpass",9000,mus);
- if(st==14)noise(t,.18,.14*v,"highpass",7000,mus);
- if(BASS[st]>=0)tone(mtof(r+BASS[st]),t,.2,"square",.2*v,mus);
- if(mode==="intro"&&(st==3||st==7||st==11))[24,27,31,34].forEach(n=>tone(mtof(r+n),t,.12,"sawtooth",.04,mus))}
-function pump(){while(nextT<AC.currentTime+.15){play16(step,nextT);nextT+=60/104/4;step=(step+1)%64}}
-function setMode(m){mode=m;if(!AC)return;const g=m==="intro"?.55:m==="tense"?.4:.3;mus.gain.setTargetAtTime(g,AC.currentTime,.2);if(custom)custom.volume=m==="intro"?.8:.4}
-function music(on){if(!AC)return;if(custom){on&&musicOn?custom.play():custom.pause();return}if(on&&musicOn&&!sched){nextT=AC.currentTime+.05;step=0;sched=setInterval(pump,25)}else if(!on||!musicOn){clearInterval(sched);sched=null}}
-const S={
- ok(t){[523,659,784,1047].forEach((f,i)=>tone(f,t+i*.08,.3,"triangle",.28))},
- bad(t){tone(160,t,.6,"sawtooth",.3,sfx,60);tone(120,t,.6,"square",.15,sfx,50)},
- stamp(t){noise(t,.25,.9,"lowpass",600);tone(90,t,.3,"sine",.9,sfx,40)},
- tick(t){tone(1300,t,.05,"square",.08)},horn(t){tone(220,t,.7,"sawtooth",.3);tone(223,t,.7,"sawtooth",.3)},
- whoosh(t){noise(t,.5,.35,"bandpass",1400)},coin(t){tone(988,t,.08,"square",.12);tone(1319,t+.08,.35,"square",.12)},
- win(t){[[392,494,587],[392,494,587],[440,554,659],[523,659,784,1047]].forEach((c,i)=>c.forEach(f=>tone(f,t+i*.28,i==3?1.4:.3,"sawtooth",.07)))}};
-const snd=n=>{if(AC&&sfxOn)S[n](AC.currentTime)};
-if($("#bm"))$("#bm").onclick=e=>{initAudio();musicOn=!musicOn;e.target.classList.toggle("off",!musicOn);music(musicOn)};
-if($("#bs"))$("#bs").onclick=e=>{initAudio();sfxOn=!sfxOn;e.target.classList.toggle("off",!sfxOn)};
-if($("#fm"))$("#fm").onchange=e=>{const f=e.target.files[0];if(!f)return;initAudio();music(false);custom=new Audio(URL.createObjectURL(f));custom.loop=true;setMode(mode);music(true)};
+/* [frase, definición, nivel] nivel 1 = concretos, 2 = metáforas */
+const POOL=[
+["Dos jefes dándose la espalda","Conflicto entre Ventas y Producción: las áreas no se coordinan.",1],
+["Gráfica de ventas cayendo","Caída de ventas del 20%: riesgo alto que se debe solucionar.",1],
+["Empleados saliendo por la puerta","Alta rotación de personal: riesgo alto que se mitiga.",1],
+["Cada área en su isla","Silos entre áreas: no comparten información ni metas.",1],
+["Decidir con los ojos vendados","Falta de indicadores y datos para decidir.",1],
+["Organigrama de la empresa","Estructura jerárquica: Dirección General, Ventas, Producción, I+D, Talento Humano y Finanzas.",1],
+["Cliente yéndose enojado","Pérdida de clientes: amenaza por la mala coordinación entre áreas.",1],
+["Camión de entrega llegando tarde","Entregas tardías: efecto de que Ventas y Producción no están alineadas.",1],
+["Equipo jalando la misma cuerda","Alinear Ventas y Producción con metas comunes.",1],
+["Tablero con indicadores","KPIs de ventas, rotación y coordinación para decidir con datos.",1],
+["Paraguas contra la tormenta","Mitigar un riesgo: reducir su probabilidad o su impacto.",2],
+["Lupa sobre un proyecto nuevo","Estudio de factibilidad: análisis operativo, técnico, económico y de tiempo.",2],
+["Imán que atrae a los empleados","Plan de retención: acciones para que el personal clave se quede.",2],
+["Puente entre dos edificios","Alinear Ventas y Producción: comunicación y metas comunes entre áreas.",2],
+["Cerebros escapando de la oficina","Fuga de talento: se van personas valiosas a otras empresas.",2],
+["Binoculares vigilando a un rival","Presión de la competencia: riesgo que se acepta y se monitorea.",2],
+["Oficina con nubes de tormenta","Mal clima laboral: tensión entre áreas y alta rotación.",2],
+["Escalera en tres peldaños","Plan por horizontes: corto, mediano y largo plazo.",2],
+["Balanza entre costo y beneficio","Evaluar si una inversión es viable antes de ejecutarla.",2],
+["Rueda que gira y mejora","Mejora continua: medir resultados y ajustar procesos.",2],
+["Planeación","Definir objetivos y las acciones para lograrlos. Primera etapa del proceso administrativo.",3],
+["Organización","Estructurar áreas, cargos y recursos, como se ve en el organigrama.",3],
+["Dirección","Guiar e influir en las personas para alcanzar las metas.",3],
+["Control","Medir resultados con indicadores y corregir desviaciones.",3],
+["Riesgos","Eventos que pueden afectar a la empresa. Se clasifican por nivel y se solucionan, mitigan o aceptan.",3],
+["Coordinación","Lograr que las áreas trabajen en conjunto, como Ventas y Producción.",3],
+["Liderazgo","Capacidad de inspirar y orientar a un equipo hacia un objetivo.",3],
+["Delegar","Asignar tareas y autoridad a otras personas del equipo.",3],
+["Comunicación","Intercambio claro de información entre personas y áreas.",3],
+["Toma de decisiones","Elegir entre alternativas, idealmente con datos e indicadores.",3],
+["Estrategia","Plan a largo plazo para lograr una ventaja y alcanzar los objetivos.",3],
+["Objetivos","Resultados concretos y medibles que la empresa quiere lograr.",3],
+["Eficiencia","Lograr resultados usando bien el tiempo y los recursos.",3],
+["Motivación","Lo que impulsa a las personas a rendir y permanecer en la empresa.",3],
+["Trabajo en equipo","Colaboración de varias personas hacia una meta común.",3],
+["Presupuesto","Plan de ingresos y gastos que guía las inversiones.",3],
+["Jerarquía","Niveles de autoridad dentro de la organización.",3],
+["Productividad","Relación entre lo que se produce y los recursos que se usan.",3]
+];
+const LV={1:"Concretos (se dibujan directo)",2:"Metáforas (más difíciles)",3:"Palabras de administración",4:"Mixto (todos)"};
+const TC=["#3d86ff","#00b8ff","#9a86ff","#e8eef7"];
+const $=s=>document.querySelector(s),app=$("#app");
+let S={};
+const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function order(seed,lv){const a=POOL.filter(c=>lv===4||c[2]===lv),r=rng(seed);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function beep(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.frequency.value=660;o.connect(c.destination);o.start();setTimeout(()=>{o.stop();c.close()},450)}catch(e){}}
+const board=()=>`<div class="scores">${S.total.map((p,t)=>`<div class="sc" style="--tc:${TC[t]}"><small>Equipo ${t+1}</small><b>${p}</b></div>`).join("")}</div>`;
 
-function overlay(h,ms,cb){const o=document.createElement("div");o.className="ov";o.innerHTML=`<div>${h}</div>`;document.body.appendChild(o);setTimeout(()=>{o.remove();cb&&cb()},ms)}
-function confetti(){const c=$("#cf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const P=Array.from({length:150},()=>({x:Math.random()*c.width,y:-Math.random()*c.height,v:2+Math.random()*4,s:6+Math.random()*7,c:`hsl(${Math.random()*360},90%,60%)`,r:Math.random()*6}));let f=0;(function d(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.y/30);p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(0,0,p.s,p.s/2);x.restore()});if(++f<420)requestAnimationFrame(d);else x.clearRect(0,0,c.width,c.height)})()}
-const DOCS=[
-{t:"Reclamo de siniestro",ty:"x",T:180,x:"Buenas tardes. Les escribo por segunda vez porque el {{12 de octubre}} tuve un accidente y todavía nadie me da respuesta. Soy [[Valeria Arce Montero]] y mi esposo es [[Rolando Quirós Pineda]], quien aparece como asegurado en la {{Póliza Auto Plus}}, número [[POL-5530-218]]. Yo manejaba nuestro vehículo, un {{sedán gris modelo 2022}} con placa [[MKP-319]], cuando un camión nos golpeó por detrás en {{Tres Ríos}}, frente a una {{estación de servicio}}. Llegó el oficial [[Jorge Campos Salas]] y levantó el parte [[PT-2026-88412]]; mi vecina [[Karina Solís]], que venía conmigo de regreso del trabajo, fue testigo y firmó la declaración. A mí me llevaron a urgencias y me diagnosticaron [[esguince cervical]] y [[contusión en la rodilla izquierda]]; el médico me dio {{10 días}} de incapacidad, que ya envié por correo. Les adjunté también la factura del taller por ₡385 000, que corresponde al deducible y las reparaciones iniciales; la pagué con la tarjeta terminada en {{4417}}, aunque la que aparece en el comprobante es la [[4539 1488 0343 6467]]. Necesito que el reembolso se deposite en la cuenta [[CR21 0152 0200 1034 7788 02]], a nombre de mi esposo. Pueden escribirme a [[valeria.arce@tmail.com]] o llamarme al [[8845-2210]] en {{horario de oficina}}. Si necesitan verificar el carro, estoy en [[Urbanización Monte Verde, casa 22, Cartago]], a {{dos cuadras de la escuela}}. Les recuerdo que mi hija [[Sofía, de 9 años]], iba en el asiento trasero y también fue revisada por un pediatra, quien pidió {{una radiografía de control}}. Quedo atenta.",why:"Se enmascaran nombres propios (incluidos terceros y una menor), identificadores como placa, parte y póliza, datos de salud, la tarjeta completa, la cuenta bancaria, el contacto y la dirección exacta. Fechas, lugares generales, nombres de producto, días de incapacidad, los últimos 4 dígitos y los horarios no identifican a nadie por sí solos."},
-{t:"Consulta de nómina",ty:"x",T:180,x:"Hola, buen día. Soy [[Daniela Vargas Solano]], del departamento de {{Contabilidad}}, y escribo porque mi último pago salió incorrecto. Mi jefe directo, [[Mauricio Retana Badilla]], me pidió que primero lo revisara con ustedes antes de corregir el reporte del {{tercer trimestre}}. Mi salario bruto es de [[₡1 250 000]] mensuales, pero el monto depositado fue menor porque me rebajaron una [[pensión alimentaria de ₡120 000]] que ya no corresponde, pues mi hijo [[Mateo Solano, de 17 años]], terminó sus estudios. El depósito llega a la cuenta [[CR05 0152 0200 1026 2840 66]] y mi cédula es la [[1-1180-0452]]; mi número de empleada es el [[EMP-30871]]. Ayer intenté entrar al portal de la empresa con el usuario [[dvargas]] y la contraseña [[Dani2026*]], pero el sistema me bloqueó y me pidió un código que llegó al [[8845-2210]], aunque no me deja ingresarlo. Antes usaba el correo [[daniela.vargas@empresa.cr]] y ahora aparece otro. Trabajo en la {{sede de San Pedro}}, en el {{segundo piso}}, y mi compañera [[Lucía Barrantes]], que se sienta a mi lado, tiene el mismo problema con su pago y además está [[incapacitada por una cirugía de rodilla]]. Mi {{contrato es indefinido}}, la {{política de vacaciones}} no ha cambiado y mi horario es {{de ocho a cinco}}. Vivo en [[Residencial Las Orquídeas, casa 14, Heredia]], por si necesitan enviar documentos físicos. También quiero que me aclaren un rebajo por la póliza colectiva, ya que la {{aseguradora de la empresa}} cobró dos veces en {{agosto}}. Gracias de antemano.",why:"Hay datos financieros (salario, pensión, cuenta), credenciales, identificadores, contacto, dirección exacta, datos de salud de una compañera y de un menor, y nombres de terceros. El área, el trimestre, la sede, las condiciones generales del contrato y los horarios no identifican a nadie por sí solos."},
-{t:"Chat de una clínica",ty:"x",T:180,x:"Buenas tardes, habla [[Esteban Mora Chaves]], cédula [[1-1203-0871]], nací el [[14 de marzo de 1990]]. Les escribo para {{reprogramar mi cita}} del jueves. Estoy en tratamiento por [[hipertensión]] con la doctora [[Karla Jiménez Araya]] y además hace un año me diagnosticaron [[apnea del sueño]], por lo que uso un equipo nocturno. En la última consulta me pidieron exámenes de laboratorio y el resultado de [[glucosa en ayunas de 126]] salió alto, así que tengo que repetirlo. Mi esposa, [[Mariela Campos]], también tiene cita en la {{misma clínica}} y le dijeron que es [[alérgica a la penicilina]], igual que nuestra hija [[Camila, de 7 años]], cuya pediatra, la doctora [[Ana Brenes]], pidió más exámenes. Quiero que los recordatorios lleguen al WhatsApp [[7012-3345]] o al correo [[esteban.mora@correo.cr]], pero no a la línea de la casa, porque ahí contesta mi suegra. La {{receta}} vence en {{dos semanas}} y la farmacia de mi {{barrio}} no tiene el medicamento. Mi seguro es el número [[SEG-9920-3351]] y pago {{una cuota mensual}} por el plan familiar, que incluye {{cobertura dental}}. Prefiero que la cita sea {{por la mañana}}, porque trabajo de {{tarde}}. Por último, vivo en [[Barrio Lourdes, frente al parque, San Pedro]], y la clínica me queda a {{diez minutos en carro}}. Si hace falta un comprobante de mi diagnóstico para mi empleador, pueden enviarlo al correo de mi jefa, [[Silvia Rojas]], aunque preferiría que no se enteren de mi condición. Muchas gracias.",why:"Son datos sensibles: identificación, fecha de nacimiento, diagnósticos y resultados de laboratorio, salud de la esposa y de una menor, nombres de médicos y de terceros, contacto, número de seguro y dirección. Trámites generales, plazos, horarios y características del plan no identifican a nadie."},
-{t:"Cotización de seguro",ty:"x",T:180,x:"Hola, quiero asegurar un vehículo y necesito una {{cotización}} con cobertura completa. Es un {{modelo 2022}} de color {{gris}}, placa [[BQR-482]], que compré hace {{seis meses}} en una {{agencia de Escazú}}. Yo soy [[Luis Jiménez Soto]], nací el [[3 de agosto de 1988]] y mi cédula es [[2-0654-0319]]. Mi licencia de conducir es la [[A-0045-9921]] y está vigente hasta {{2029}}. He tenido {{dos reclamos previos}} con otra aseguradora y mi {{historial de pagos}} es bueno. Mi esposa, [[Mariana Quesada]], también será conductora autorizada, pero ella tuvo una [[suspensión de licencia por una multa de alcoholemia]] hace tres años y quiero saber si eso afecta el precio. Mi hijo [[Tomás, de 19 años]], manejará solo los fines de semana. Vivimos en [[Residencial Altos del Sol, casa 7, Alajuela]], y el carro duerme en un {{garaje cerrado}}. Pueden contactarme al [[luis.jimenez@mail.com]] o al [[8832-4410]], de preferencia {{después de las seis}}. Quiero pagar con la tarjeta [[4539 1488 0343 6467]], a nombre de mi esposa, en {{doce cuotas}}, y que el seguro {{inicie el próximo mes}}. Mi ingreso mensual es de [[₡2 100 000]] según mi última planilla, por si necesitan comprobar capacidad de pago, y mi cuenta para débitos es la [[CR14 0152 0200 1087 3344 19]]. Además, trabajo como {{ingeniero}} y viajo {{una vez al mes}} a la zona norte, así que el carro hace {{rutas largas}}. Quedo atento a su respuesta.",why:"Se enmascaran identificadores (placa, cédula, licencia), fecha de nacimiento, nombres de terceros y de un hijo, un antecedente de multa, dirección, contacto, la tarjeta completa, el ingreso y la cuenta. Las características generales del auto, el historial genérico, el oficio y las condiciones de pago no identifican a nadie."},
-{t:"Soporte técnico de una app",ty:"x",T:180,x:"Hola, soy [[Andrea Salazar Mora]] y no puedo entrar a mi cuenta de la {{aplicación móvil}} desde ayer. Mi usuario es [[asalazar92]] y la contraseña que uso es [[Andre@2026#]]; también me llegó un código de verificación, el [[483 921]], pero ya venció. Mi número registrado es el [[8710-5567]] y mi correo es [[andrea.salazar@gmail.com]]. Estoy usando un {{celular Android}} con la {{versión más reciente}} de la app, conectada a la red de mi casa, y la dirección IP que aparece es la [[190.113.45.201]]. Mi hermano, [[Daniel Salazar]], dice que a él le pasó lo mismo, pero que lo resolvió {{reiniciando el teléfono}} y {{borrando la caché}}. En mi cuenta tengo un saldo de [[₡845 300]] y una tarjeta vinculada, la [[5412 7534 9821 0045]], que vence en [[08/28]]. Además, la app guarda mi ubicación y ayer aparecí en [[Condominio Vista Real, torre B, apartamento 304, Escazú]], aunque yo estaba en {{otra ciudad}}. Creo que alguien más entró, porque recibí una notificación de un pago a nombre de [[Fernando Ugalde]] por ₡15 000 que yo no hice. Mi cédula es [[1-1342-0768]] y el apellido de soltera de mi madre, que usé como pregunta de seguridad, es [[Ramírez Quesada]]. Les envío capturas donde se ve mi nombre completo y mis últimos movimientos. Prefiero que me respondan {{por este mismo chat}} y no por teléfono, porque trabajo en una {{oficina compartida}}. Mientras tanto, ya {{cambié la contraseña}} de mi correo y activé {{la verificación en dos pasos}}. Agradezco su pronta respuesta.",why:"Son credenciales (usuario, contraseña, código, pregunta de seguridad), contacto, dirección IP, saldo y tarjeta con vencimiento, una dirección exacta, cédula y nombres de terceros. El tipo de celular, la versión de la app, los pasos para resolver el problema y las medidas de seguridad generales no identifican a nadie."},
-{t:"Postulación a un empleo",ty:"x",T:180,x:"Buenas, escribo para dar seguimiento a mi postulación al puesto de {{analista de sistemas}} en su {{sede de Heredia}}. Mi nombre es [[Pablo Rodríguez Vega]], nací el [[20 de junio de 1992]] y vivo en {{San Rafael de Heredia}}. Mi cédula es la [[1-1020-0734]] y mi teléfono el [[7005-1928]]. En la entrevista mencioné que estoy en [[tratamiento psicológico por ansiedad]] y que mi esposa, [[Carolina Ureña]], está [[embarazada de seis meses]], por lo que necesitaría flexibilidad de horario durante el parto. Mi pretensión salarial es de [[₡1 800 000 mensuales]] y mi salario actual es de [[₡1 450 000]], aunque debo [[₡3 200 000 a una cooperativa]] por un préstamo que pido que no se les comunique. Estoy {{disponible para trabajo híbrido}} y puedo {{iniciar en enero}}. Mis referencias son [[Marta Quirós]], antigua jefa en mi empleo anterior, y [[Gerardo Fallas]], quienes pueden confirmar mi {{experiencia en desarrollo web}} y mis {{certificaciones de nube}}. Mi perfil de [[linkedin.com/in/pablorodriguezv]] está actualizado, y mi sitio personal muestra mi [[número de pasaporte C0451297]] por un error que ya corregiré. Estudié en la {{Universidad Nacional}} y me gradué en {{2016}}. Hace dos años presenté una [[denuncia laboral por despido injustificado]] contra mi empleador anterior, y prefiero hablar de eso personalmente. También debo mencionar que soy [[miembro del sindicato]] de mi sector. Por último, vivo con mi madre, [[Rosa Vega Mena]], de 70 años, quien depende de mí y toma [[medicamentos para la diabetes]]. Quedo atento a su respuesta.",why:"Hay datos de salud (propios y de familiares), embarazo, datos financieros (salarios y deudas), identificadores, pasaporte, contacto, perfil público vinculado, afiliación sindical, un antecedente laboral y nombres de terceros. El puesto, la sede, la disponibilidad, los estudios generales y el distrito no identifican a nadie por sí solos."},
-{t:"Panel del chatbot bancario",ty:"c",T:100,r:[["Aviso de privacidad antes del primer mensaje","Desactivado","s"],["Consentimiento para entrenar el modelo","Casilla premarcada","s"],["Aviso de que se habla con una IA","Activado","d"],["Retención de conversaciones","Indefinida","s"],["Cifrado en tránsito","TLS 1.3","d"],["Cifrado en reposo","Desactivado","s"],["Enmascarado de tarjeta y cédula en bitácoras","Activado","d"],["Acceso al historial completo","Todo el personal de soporte (40 personas)","s"],["Bitácora de accesos a conversaciones","Activa, 12 meses","d"],["Procesamiento del proveedor","Servidores en otro país, sin cláusulas","s"],["Atención de solicitudes de supresión","5 días hábiles","d"],["Evaluación de impacto en privacidad","No realizada","s"],["Pruebas de inyección de instrucciones","Trimestrales","d"],["Responsable de privacidad","Designado","d"]],why:"Los hallazgos eran: sin aviso previo ni consentimiento válido (Ley 8968 art. 5), retención indefinida (art. 6), sin cifrado en reposo y acceso excesivo (art. 10), proveedor sin cláusulas (art. 14) y sin evaluación de impacto (RGPD art. 35)."},
-{t:"Panel del chatbot de una clínica",ty:"c",T:100,r:[["Datos de salud en bitácoras","Texto sin enmascarar","s"],["Consentimiento para datos de salud","Casilla obligatoria, redacción clara","d"],["Analítica con proveedor externo","Incluye diagnósticos","s"],["Retención","24 meses con depuración automática","d"],["Verificación de identidad antes de mostrar resultados","Solo nombre completo","s"],["Cifrado en reposo","AES-256","d"],["Acceso, rectificación y supresión","Formulario web, 5 días hábiles","d"],["Uso de chats para mejorar el modelo","Sin opción de rechazo","s"],["Desarrolladores en pruebas","Usan datos reales sin enmascarar","s"],["Aviso de interacción con IA","Mensaje de bienvenida","d"],["Respaldos","Cifrados, 30 días","d"],["Notificación de brechas","Procedimiento documentado","d"]],why:"Los hallazgos eran: datos de salud sin enmascarar, diagnósticos compartidos con un tercero, falta de autenticación, entrenamiento sin opción de rechazo y datos reales en pruebas (Ley 8968 arts. 5, 9 y 10; RGPD arts. 25 y 32)."}];
-DOCS.forEach(D=>{if(D.ty=="x"){D.sg=D.x.split(/(\[\[.*?\]\]|\{\{.*?\}\})/).filter(Boolean).map(p=>/^(\[\[|\{\{)/.test(p)?{t:p.slice(2,-2),k:p[0]=="["}:{t:p}) ;D.key=D.sg.filter(s=>"k"in s).map(s=>s.k)}else D.key=D.r.map(r=>r[2]=="s")});
-function view(D,f){let j=-1;if(D.ty=="x")return `<div class="dc">${D.sg.map(s=>{if(!("k"in s))return esc(s.t);j++;const o=f(j);return `<span class="tk ${o.c}" data-j="${j}" style="--a:${o.a||0}">${esc(s.t)}</span>`}).join("")}</div>`;
-return D.r.map((r,i)=>{const o=f(i);return `<div class="rw ${o.c}" data-j="${i}"><span>${esc(r[0])}</span><b>${esc(r[1])}</b><i>HALLAZGO</i></div>`}).join("")}
-const BR=["wss://broker.emqx.io:8084/mqtt","wss://broker.hivemq.com:8884/mqtt","wss://test.mosquitto.org:8081"],QP=new URLSearchParams(location.search).get("s"),BASE=r=>"coabierto13/"+r+"/";
-let cli,ROOM,teams=[],H={},left=0,T=0,timer=null,seq=[],si=0,sel="both";
-function link(room,onMsg,onOk){if(typeof mqtt=="undefined")throw new Error("no cargó la librería de conexión; revisen el internet");let i=0;const go=()=>{const c=mqtt.connect(BR[i],{reconnectPeriod:2000,connectTimeout:6000});cli=c;c.on("connect",()=>{H.cs="Conectado";onOk()});c.on("close",()=>{if(H.cs=="Conectado")H.cs="Reconectando..."});c.on("message",(t,p)=>{try{onMsg(JSON.parse(p))}catch(e){}});c.on("error",()=>{H.cs="Error de conexión, probando otro servidor...";if(!c.connected&&i<BR.length-1){c.end(true);i++;go()}})};go()}
-const mem=i=>Object.values(H.pl||{}).filter(p=>p.tm==i&&Date.now()-p.seen<20000);
-const maj=(i,j)=>{const m=mem(i);return m.length>0&&m.filter(p=>p.mk.includes(j)).length*2>m.length};
-const lbd=()=>`<div class="chips">${teams.map(t=>`<div class="chip" style="--c:${t.c}">${esc(t.name)}<b>${t.pts}</b></div>`).join("")}</div>`;
-const ringH=()=>`<div class="ring" id="ring"><svg viewBox="0 0 100 100" width="78" height="78"><circle class="bg" cx="50" cy="50" r="44"/><circle class="fg" id="fg" cx="50" cy="50" r="44"/></svg><span id="sec">${T}</span></div>`;
-function clock(){const f=$("#fg");if(!f)return;f.style.strokeDashoffset=276.5*(1-left/T);$("#sec").textContent=Math.max(left,0);$("#ring").classList.toggle("low",left<=10)}
-function pub(x){if(cli&&cli.connected)cli.publish(BASE(ROOM)+"h",JSON.stringify(Object.assign({k:H.k,ph:H.ph,tm:teams.map(t=>({n:t.name,c:t.c})),di:H.di,rem:Math.max(left,0),res:H.res,lb:teams.map(t=>t.pts)},x||{})),{retain:true})}
+function setup(){
+ clearInterval(S.iv);
+ const seed=1000+Math.floor(Math.random()*9000),here=/^https?:/.test(location.href)?location.href.split("#")[0]:"";
+ app.innerHTML=`<div class="bar"></div><h1>Dibujo exprés</h1>
+ <p class="sub">NovaTech. Un dibujante por equipo dibuja la frase sin letras ni palabras. Su equipo adivina.</p>
+ <div class="box"><h2>Configuración del anfitrión</h2>
+ <div class="grid3">
+ <div><label for="nt">Equipos (2 a 4)</label><input id="nt" type="number" min="2" max="4" value="2"></div>
+ <div><label for="nr">Rondas (1 a 10)</label><input id="nr" type="number" min="1" max="10" value="8"></div>
+ <div><label for="ns">Segundos por ronda</label><input id="ns" type="number" min="15" max="180" step="5" value="45"></div>
+ <div><label for="nv">Nivel</label><select id="nv"><option value="1">${LV[1]}</option><option value="2">${LV[2]}</option><option value="3">${LV[3]}</option><option value="4" selected>${LV[4]}</option></select></div></div>
+ <p class="rule">Primer equipo en acertar: +3. Otro equipo que también acierte a tiempo: +1. Dibujante que escribe letras o dice palabras: -2. Tú decides si la respuesta captura la idea, aunque no repita las palabras exactas.</p>
+ <div class="ctl"><button class="p" id="go">Iniciar juego</button></div></div>
+ <div class="box"><h2 style="font-size:24px">Panel privado en tu celular</h2>
+ <p class="rule">Escanea este código QR con tu celular antes de proyectar. Ahí verás cada frase sin que los estudiantes la vean. Al iniciar el juego, el QR desaparece de la pantalla.</p>
+ <label for="ur">Dirección de esta página en internet</label>
+ <input id="ur" type="text" value="${here}" placeholder="https://tuusuario.github.io/dibujo.html" autocomplete="off">
+ <div id="qr"></div><p class="rule" id="qn"></p>
+ <div class="ctl"><button id="hq">Ocultar QR</button></div></div>`;
+ const draw=()=>{
+  const box=$("#qr"),u=$("#ur").value.trim().split("#")[0],lv=$("#nv").value,code=seed+"-"+lv;box.innerHTML="";
+  if(!/^https?:\/\/./.test(u)){box.style.display="none";$("#qn").textContent="Para generar el QR, la página debe estar publicada en internet (por ejemplo en GitHub Pages). Pega su dirección arriba. Código manual: "+code;return}
+  if(typeof QRCode==="undefined"){box.style.display="none";$("#qn").textContent="No se pudo cargar el generador de QR. Abre este enlace en tu celular: "+u+"#privado="+code;return}
+  box.style.display="block";new QRCode(box,{text:u+"#privado="+code,width:200,height:200,correctLevel:QRCode.CorrectLevel.M});
+  $("#qn").textContent="Código manual por si no puedes escanear: "+code};
+ $("#nv").onchange=draw;$("#ur").oninput=draw;
+ $("#hq").onclick=function(){const b=$("#qr");const hide=b.style.display!=="none";if(hide){b.style.display="none";this.textContent="Mostrar QR"}else{draw();this.textContent="Ocultar QR"}};
+ draw();
+ $("#go").onclick=()=>{
+  const v=(id,a,b)=>Math.min(b,Math.max(a,parseInt($(id).value)||a));
+  const nt=v("#nt",2,4),ns=v("#ns",15,180),lv=+$("#nv").value,list=order(seed,lv),nr=Math.min(v("#nr",1,10),list.length);
+  S={nt,nr,ns,lv,seed,order:list.slice(0,nr),r:0,total:Array(nt).fill(0)};
+  prep()}}
 
-/* ===== PRESENTADOR ===== */
-function setup(){H={ph:"x"};music(false);let n=3,r1v=3,r2v=1,ttv="";const draw=()=>{app.innerHTML=`<section class="c"><div class="cap">Auditoría de sistemas · Tema 5</div><h1>Caso <em>abierto</em></h1><p class="mut">Auditoría de controles de privacidad en plataformas de IA conversacional</p>
-<div class="box"><div class="g2"><div><b>Misión 1 · El anonimizador</b>Cada equipo, desde su celular, marca los datos personales de un chat real. Se vota por mayoría dentro del equipo. Sumas por datos detectados y restas por marcar de más.</div><div><b>Misión 2 · Hallazgos de auditoría</b>Cada equipo revisa el panel de configuración de un chatbot y marca los ajustes que incumplen. El equipo más rápido y sin errores recibe un bono.</div></div></div>
-<div class="box"><div class="row"><label>Equipos<select id="n">${[2,3,4,5,6].map(k=>`<option ${k==n?"selected":""}>${k}</option>`).join("")}</select></label><label>Rondas del anonimizador<select id="r1">${[0,1,2,3,4,5,6].map(k=>`<option ${k==r1v?"selected":""}>${k}</option>`).join("")}</select></label><label>Rondas de hallazgos<select id="r2">${[0,1,2].map(k=>`<option ${k==r2v?"selected":""}>${k}</option>`).join("")}</select></label><label>Segundos por caso (opcional)<input id="tt" type="number" min="20" max="600" value="${ttv}" placeholder="Predeterminado: 100 a 120"></label></div><div class="tm">${Array.from({length:n},(_,i)=>`<label><i style="background:${COL[i]}"></i><input class="tn" value="Equipo ${i+1}" maxlength="16"></label>`).join("")}</div></div>
-<button class="go" id="go">ABRIR SALA</button><p class="mut" id="st"></p></section>`;
-$("#n").onchange=e=>{n=+e.target.value;r1v=+$("#r1").value;r2v=+$("#r2").value;ttv=$("#tt").value;draw()};$("#go").onclick=()=>{let r1=+$("#r1").value,r2=+$("#r2").value;if(r1+r2==0)r1=1;const tt=Math.max(0,parseInt($("#tt").value)||0);teams=[...document.querySelectorAll(".tn")].map((e,i)=>({name:e.value.trim()||"Equipo "+(i+1),c:COL[i],pts:0}));ROOM=Math.random().toString(36).slice(2,7).toUpperCase();H={ph:"lobby",k:0,pl:{},tt,r1,r2};try{initAudio();setMode("intro");music(true)}catch(e){}H.cs="Conectando al servidor...";lobby();try{link(ROOM,m=>{if(m.id){H.pl[m.id]=Object.assign(m,{seen:Date.now()})}},()=>{cli.subscribe(BASE(ROOM)+"p");pub()})}catch(e){H.cs="Sin conexión en tiempo real: "+e.message}}};draw()}
-function lobby(){const dflt=localStorage.getItem("coURL")||(/^http/.test(location.protocol)?location.origin+location.pathname:"");
-app.innerHTML=`<div class="top"><div><div class="cap">Sala</div><h2 style="margin:0">Escaneen el código para unirse</h2></div><button class="go" id="bg">INICIAR</button></div>
-<div class="lob"><div class="box c" style="margin:0"><div id="qr"></div><div class="cap" style="margin-top:10px">Código de sala</div><div class="pts">${ROOM}</div><div class="mut" id="cs" style="font-size:.8em"></div><div class="mut" id="fl" style="font-size:.7em;word-break:break-all;margin:6px 0"></div><label class="mut" style="font-size:.75em">Dirección pública de esta página<input id="u" value="${esc(dflt)}" placeholder="https://usuario.github.io/caso-abierto/"></label></div><div id="lb"></div></div>`;
-const qr=()=>{const u=$("#u").value.trim(),q=$("#qr");try{localStorage.setItem("coURL",u)}catch(e){}q.innerHTML="";$("#fl").textContent="";if(!u){q.innerHTML='<div style="color:#111;width:240px;padding:10px;font-size:.85em;text-align:left"><b>Falta la dirección pública.</b><br>Este archivo está abierto desde su computadora y los celulares no pueden verlo. Publiquen index.html (GitHub Pages o Netlify Drop), abran esa dirección y pulsen Abrir sala, o péguenla en el campo de abajo. Mientras tanto pueden probar el juego tocando las marcas directamente en esta pantalla.</div>';return}const full=u+(u.includes("?")?"&":"?")+"s="+ROOM;$("#fl").textContent=full;const img=()=>{q.innerHTML='<img width="240" height="240" alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='+encodeURIComponent(full)+'">'};if(typeof QRCode=="undefined"){img();return}try{new QRCode(q,{text:full,width:240,height:240})}catch(e){img()}};qr();$("#u").oninput=qr;
-const t=setInterval(()=>{const l=$("#lb");if(!l){clearInterval(t);return}if($("#cs"))$("#cs").textContent=H.cs||"";l.innerHTML=teams.map((tm,i)=>`<div class="box" style="margin:0 0 10px;border-left:6px solid ${tm.c}"><b>${esc(tm.name)}</b> <span class="mut">${mem(i).length} jugadores</span><div class="pl">${mem(i).map(p=>`<span>${esc(p.nm)}</span>`).join("")||'<span class="mut">Esperando jugadores</span>'}</div></div>`).join("")},700);
-$("#bg").onclick=()=>{const sh=a=>a.map(x=>[Math.random(),x]).sort((u,v)=>u[0]-v[0]).map(x=>x[1]),ix=t=>DOCS.map((d,i)=>d.ty==t?i:-1).filter(i=>i>=0);seq=[...sh(ix("x")).slice(0,H.r1),...sh(ix("c")).slice(0,H.r2)];si=0;round()}}
-function round(){clearInterval(timer);const D=DOCS[seq[si]];snd("whoosh");H.ph="wait";H.di=seq[si];pub();
-overlay(`<div class="cap">${D.ty=="x"?"Misión 1 · El anonimizador":"Misión 2 · Hallazgos de auditoría"} · Caso ${si+1} de ${seq.length}</div><h2>${esc(D.t)}</h2><p class="mut">${D.ty=="x"?"Marquen los datos personales. No marquen lo inofensivo.":"Marquen los ajustes que incumplen la normativa."}</p>`,2200,()=>{
-H.ph="play";H.k++;H.sub={};H.res=null;Object.values(H.pl).forEach(p=>{p.mk=[];p.sb=false});T=H.tt||D.T;left=T;setMode("game");
-app.innerHTML=`<div class="top"><div><div class="cap">Caso ${si+1} de ${seq.length}</div><h2 style="margin:0">${esc(D.t)}</h2></div>${lbd()}<div style="text-align:center">${ringH()}<button class="sm" id="tmn">-15 s</button> <button class="sm" id="tpl">+15 s</button></div></div><div id="pn"></div><div id="vd"></div>`;$("#tpl").onclick=()=>{left+=15;T=Math.max(T,left);clock();pub()};$("#tmn").onclick=()=>{left=Math.max(1,left-15);clock();pub()};pub();clock();paint();
-timer=setInterval(()=>{left--;clock();if(left>0&&left<=5){snd("tick");setMode("tense")}
-teams.forEach((t,i)=>{const m=mem(i);if(!H.sub[i]&&m.length&&m.filter(p=>p.sb).length*2>m.length)H.sub[i]=Date.now()});
-if(left<=0){snd("horn");reveal()}else{const act=teams.map((_,i)=>i).filter(i=>mem(i).length);if(act.length&&act.every(i=>H.sub[i]))reveal();else if(left%5==0)pub()}},1000)})}
-function paint(rv){const D=DOCS[H.di],p=$("#pn");if(!p)return;Object.keys(H.pl||{}).forEach(k=>{if(k.startsWith("host"))H.pl[k].seen=Date.now()});p.innerHTML=`<div class="tg">${teams.map((t,i)=>{const m=mem(i);return `<div class="tp" data-t="${i}" style="--c:${t.c}"><div class="th"><b>${esc(t.name)}</b><span>${m.length} jugador${m.length==1?"":"es"}${rv?"":H.sub[i]?" · ENTREGADO":""}${rv?` · ${rv[i].h}/${rv[i].s} · ${rv[i].p>=0?"+":""}${rv[i].p} pts`:""}</span></div>${view(D,j=>{const k=D.key[j],c=m.filter(q=>q.mk.includes(j)).length,mm=m.length>0&&c*2>m.length;return{c:rv?(k?(mm?"hit":"miss"):(mm?"over":"")):(mm?"m":""),a:m.length?c/m.length:0}})}</div>`}).join("")}</div>`;p.onclick=rv?null:e=>{const el=e.target.closest("[data-j]");if(!el||H.ph!="play")return;const i=+el.closest(".tp").dataset.t,j=+el.dataset.j,id="host"+i,q=H.pl[id]||(H.pl[id]={id,nm:"Presentador",tm:i,mk:[],sb:false}),x=q.mk.indexOf(j);x<0?q.mk.push(j):q.mk.splice(x,1);q.seen=Date.now();snd("coin");paint()}}
-setInterval(()=>{if(H.ph=="play")paint()},700);
-function reveal(){if(H.ph!="play")return;H.ph="rev";clearInterval(timer);setMode("game");snd("stamp");const D=DOCS[H.di];
-const rv=teams.map((t,i)=>{let s=0,h=0,o=0;D.key.forEach((k,j)=>{const m=maj(i,j);if(k){s++;if(m)h++}else if(m)o++});return{s,h,o,pf:h==s&&!o&&mem(i).length>0,p:0}});
-let fi=-1;rv.forEach((r,i)=>{if(r.pf&&H.sub[i]&&(fi<0||H.sub[i]<H.sub[fi]))fi=i});
-rv.forEach((r,i)=>{r.p=r.h-r.o+(r.pf?2:0)+(i==fi?2:0);r.fast=i==fi;teams[i].pts=Math.max(0,teams[i].pts+r.p)});
-H.res=rv;snd(rv.some(r=>r.p>0)?"ok":"bad");paint(rv);
-$("#vd").innerHTML=`<div class="ver"><div class="cap">Veredicto del auditor</div><p>${esc(D.why)}</p><p class="mut">Puntaje: +1 por cada acierto, −1 por cada marca de más, +2 si queda perfecto y +2 al equipo más rápido que entregue sin errores.</p><button class="go" id="nx">${si+1>=seq.length?"VER RESULTADOS":"SIGUIENTE CASO"} (Espacio)</button></div>`;$("#nx").onclick=nextR;pub()}
-function nextR(){if(H.ph!="rev")return;si++;si<seq.length?round():finish()}
-function finish(){H.ph="end";setMode("intro");snd("win");pub();const rk=teams.map((t,i)=>({t,i})).sort((a,b)=>b.t.pts-a.t.pts);
-app.innerHTML=`<section class="c"><div class="cap">Caso cerrado</div><h1 style="font-size:clamp(34px,6vw,70px)">Veredicto <em>final</em></h1><div class="box">${rk.map((r,k)=>`<div class="rk" style="--c:${r.t.c}"><span>${k+1}. ${esc(r.t.name)}</span><span class="pts">${r.t.pts}</span></div>`).join("")}</div><button class="go" id="ag">NUEVA PARTIDA</button></section>`;$("#ag").onclick=()=>{cli&&cli.end(true);setup()};confetti()}
+function prep(){
+ clearInterval(S.iv);
+ app.innerHTML=`<div class="top"><div><div class="bar"></div><h2>Ronda ${S.r+1} de ${S.nr}</h2></div><button id="end">Terminar juego</button></div>${board()}
+ <div class="box"><p class="rule" style="margin:0 0 14px">La frase de esta ronda está en tu panel privado. Llama a un dibujante por equipo, muéstrales la frase en tu celular y pasen a la pizarra.</p>
+ <button class="p" id="st">Iniciar ${S.ns} segundos</button></div>`;
+ $("#st").onclick=play;$("#end").onclick=final}
 
-/* ===== JUGADOR (celular) ===== */
-function player(){$("#ctl").remove();const S={id:Math.random().toString(36).slice(2,10),nm:"",tm:-1,mk:new Set(),sb:false,m:null,rc:0,lk:""};ROOM=QP;let dt=null;
-const send=()=>{if(cli&&cli.connected&&S.tm>=0)cli.publish(BASE(ROOM)+"p",JSON.stringify({id:S.id,nm:S.nm,tm:S.tm,mk:[...S.mk],sb:S.sb}))};
-const draw=()=>{const m=S.m;if(!m){app.innerHTML=`<div class="pw c"><h2>Conectando...</h2><p class="mut">Sala ${esc(ROOM)}</p></div>`;return}
-const tc=S.tm>=0&&m.tm[S.tm]?m.tm[S.tm].c:"#888";
-if(S.tm<0){app.innerHTML=`<div class="pw"><div class="cap">Caso abierto · Sala ${esc(ROOM)}</div><h2>Únete a un equipo</h2><input id="nm" placeholder="Tu nombre" maxlength="14"><div class="tm2">${m.tm.map((t,i)=>`<button style="--c:${t.c}" data-i="${i}">${esc(t.n)}</button>`).join("")}</div></div>`;
-document.querySelectorAll(".tm2 button").forEach(b=>b.onclick=()=>{const v=$("#nm").value.trim();if(!v){$("#nm").focus();return}S.nm=v;S.tm=+b.dataset.i;send();draw()});return}
-const head=`<div class="top"><div><div class="cap" style="color:${tc}">${esc(m.tm[S.tm].n)}</div><b>${esc(S.nm)}</b></div><b class="pts" id="pt"></b></div>`;
-if(m.ph=="play"){const D=DOCS[m.di];app.innerHTML=`<div class="pw">${head}<div class="tp" style="--c:${tc}"><div class="th"><b>${esc(D.t)}</b></div><p style="font-size:.85em;margin:0 0 6px">${D.ty=="x"?"Toca los datos personales para tacharlos.":"Toca los ajustes que incumplen la normativa."}</p>${view(D,j=>({c:S.mk.has(j)?"m":"",a:0}))}</div><button class="go" id="sb" style="width:100%">${S.sb?"ENTREGADO":"ENTREGAR"}</button></div>`;
-document.querySelectorAll("[data-j]").forEach(e=>e.onclick=()=>{if(S.sb)return;const j=+e.dataset.j;S.mk.has(j)?S.mk.delete(j):S.mk.add(j);e.classList.toggle("m");send()});$("#sb").onclick=()=>{S.sb=true;$("#sb").textContent="ENTREGADO";send()};tick()}
-else if(m.ph=="rev"&&m.res){const r=m.res[S.tm],rk=m.lb.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i==S.tm)+1;app.innerHTML=`<div class="pw c">${head}<div class="box c"><div class="cap">Resultado del equipo</div><div class="pts" style="font-size:3em">${r.p>=0?"+":""}${r.p}</div><p>Detectaron ${r.h} de ${r.s}. Marcas de más: ${r.o}.${r.fast?" Bono de velocidad.":""}</p><p class="mut">Van en el puesto ${rk} con ${m.lb[S.tm]} puntos.</p></div></div>`}
-else if(m.ph=="end"){const rk=m.lb.map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p).findIndex(x=>x.i==S.tm)+1;app.innerHTML=`<div class="pw c">${head}<div class="box c"><div class="cap">Caso cerrado</div><h2>Su equipo quedó en el puesto ${rk}</h2><p class="pts">${m.lb[S.tm]} puntos</p></div></div>`}
-else app.innerHTML=`<div class="pw c">${head}<div class="box c"><h2>Listo, estás dentro</h2><p class="mut">Esperando al presentador...</p></div></div>`};
-const tick=()=>{clearInterval(dt);const f=()=>{const e=$("#pt");if(e&&S.m)e.textContent=Math.max(0,S.m.rem-Math.floor((Date.now()-S.rc)/1000))+" s"};f();dt=setInterval(f,1000)};
-link(ROOM,m=>{if(!m.ph)return;S.m=m;S.rc=Date.now();const lk=m.ph+m.k+m.di;if(m.ph=="play"&&S.lk!=lk){S.mk=new Set();S.sb=false;send()}if(S.lk!=lk||m.ph=="lobby"||S.tm<0&&!$("#nm")){S.lk=lk;if(!document.activeElement||document.activeElement.id!="nm")draw()}},()=>{cli.subscribe(BASE(ROOM)+"h");draw();if(!S.hb)S.hb=setInterval(send,4000)})}
-document.addEventListener("keydown",e=>{if(QP||e.code!="Space")return;if(["BUTTON","INPUT","SELECT"].includes(e.target.tagName))return;e.preventDefault();if(H.ph=="play")reveal();else if(H.ph=="rev")nextR()});
-QP?player():setup();
+function play(){
+ S.left=S.ns;S.paused=false;
+ app.innerHTML=`<div class="top"><div><div class="bar"></div><h2>Ronda ${S.r+1} de ${S.nr}</h2></div>
+ <div class="ctl"><button id="m">-10 s</button><button id="pl">+10 s</button><button id="pz">Pausar</button><button class="p" id="fn">Terminar ronda</button></div></div>
+ <div class="timer" id="tm">${mmss(S.left)}</div>`;
+ $("#m").onclick=()=>{S.left=Math.max(1,S.left-10);tick()};
+ $("#pl").onclick=()=>{S.left+=10;tick()};
+ $("#pz").onclick=function(){S.paused=!S.paused;this.textContent=S.paused?"Reanudar":"Pausar"};
+ $("#fn").onclick=()=>{clearInterval(S.iv);score()};
+ clearInterval(S.iv);
+ S.iv=setInterval(()=>{if(S.paused)return;S.left--;if(S.left<=0){S.left=0;tick();beep();clearInterval(S.iv);score()}else tick()},1000)}
 
-</script></body></html>
+function tick(){const t=$("#tm");t.textContent=mmss(S.left);t.classList.toggle("low",S.left<=5)}
+
+function score(){S.sc=Array.from({length:S.nt},()=>({g:0,p:false}));drawScore()}
+
+function drawScore(){
+ const c=S.order[S.r];
+ app.innerHTML=`<div class="top"><div><div class="bar"></div><h2>Ronda ${S.r+1}: resultado</h2></div></div>
+ <div class="box"><p class="sub" style="margin:0">La frase era</p><div class="concept" style="min-height:0;padding:16px">${c[0]}</div><p class="rule" style="margin:0;text-align:center">${c[1]}</p></div>
+ <div class="box">${S.sc.map((s,t)=>`<div class="row" style="--tc:${TC[t]}"><h3>Equipo ${t+1}</h3><div class="opts">
+ <button data-t="${t}" data-g="3" class="${s.g===3?"sel":""}">Acertó primero +3</button>
+ <button data-t="${t}" data-g="1" class="${s.g===1?"sel":""}">Acertó también +1</button>
+ <button data-t="${t}" data-g="0" class="${s.g===0?"sel":""}">No acertó</button>
+ <button data-t="${t}" data-p="1" class="neg ${s.p?"sel":""}">Penalizar -2</button></div></div>`).join("")}</div>
+ <button class="p" id="ok">Confirmar y continuar</button>`;
+ app.querySelectorAll("button[data-t]").forEach(b=>b.onclick=()=>{
+  const t=+b.dataset.t;
+  if(b.dataset.p)S.sc[t].p=!S.sc[t].p;
+  else{const g=+b.dataset.g;if(g===3)S.sc.forEach(s=>{if(s.g===3)s.g=0});S.sc[t].g=g}
+  drawScore()});
+ $("#ok").onclick=()=>{S.sc.forEach((s,t)=>S.total[t]+=s.g-(s.p?2:0));
+  if(S.r+1>=S.nr)final();else{S.r++;prep()}}}
+
+function final(){
+ clearInterval(S.iv);
+ const played=S.order.slice(0,Math.min(S.nr,S.r+1));
+ const rk=S.total.map((p,t)=>({t,p})).sort((a,b)=>b.p-a.p),tie=rk.length>1&&rk[0].p===rk[1].p;
+ app.innerHTML=`<div class="bar"></div><h1>Resultados finales</h1>
+ <p class="serif" style="font-size:clamp(28px,5vw,44px);color:var(--cyan);margin:0 0 16px">${tie?"Empate en el primer lugar":"Gana el Equipo "+(rk[0].t+1)}</p>
+ <div class="box"><table><tr><th>Puesto</th><th>Equipo</th><th>Puntos</th></tr>
+ ${rk.map((r,i)=>`<tr class="${r.p===rk[0].p?"win":""}"><td>${i+1}</td><td>Equipo ${r.t+1}</td><td>${r.p}</td></tr>`).join("")}</table></div>
+ <div class="box"><h2 style="font-size:24px">Frases de la partida</h2><dl style="margin:0">${played.map(c=>`<dt>${c[0]}</dt><dd>${c[1]}</dd>`).join("")}</dl></div>
+ <button class="p" id="again">Jugar de nuevo</button>`;
+ $("#again").onclick=setup}
+
+/* Panel privado: se abre en el celular con el QR y muestra la frase de cada ronda */
+function priv(code){
+ clearInterval(S.iv);
+ const P={r:0,show:false};
+ app.innerHTML=`<div class="bar"></div><h1>Panel privado</h1>
+ <p class="sub">Solo para el anfitrión. Avanza de ronda cuando la pantalla del juego avance.</p>
+ <div class="box"><label for="pc">Código de partida</label><input id="pc" type="text" inputmode="numeric" placeholder="Ejemplo: 4821-4" autocomplete="off" value="${code||""}">
+ <div class="row"><button id="pp">Anterior</button><h3 id="pr">Ronda 1</h3><button id="pn">Siguiente</button></div>
+ <div class="concept hidden" id="pcn"></div><p class="rule" id="pd"></p>
+ <div class="ctl"><button class="p" id="ps">Mostrar frase</button></div></div>`;
+ const upd=()=>{
+  const m=/^\s*(\d{4})-([1234])\s*$/.exec($("#pc").value),cn=$("#pcn"),pd=$("#pd");
+  $("#ps").textContent=P.show?"Ocultar frase":"Mostrar frase";
+  if(!m){cn.textContent="Escribe el código de la partida";cn.classList.add("hidden");pd.textContent="";$("#pr").textContent="Ronda "+(P.r+1);return}
+  const list=order(+m[1],+m[2]);if(P.r>=list.length)P.r=list.length-1;
+  $("#pr").textContent="Ronda "+(P.r+1)+" de "+list.length;
+  cn.textContent=P.show?list[P.r][0]:"Frase oculta";cn.classList.toggle("hidden",!P.show);
+  pd.textContent=P.show?list[P.r][1]:""};
+ $("#pc").oninput=()=>{P.show=false;upd()};
+ $("#pp").onclick=()=>{P.r=Math.max(0,P.r-1);P.show=false;upd()};
+ $("#pn").onclick=()=>{P.r++;P.show=false;upd()};
+ $("#ps").onclick=()=>{P.show=!P.show;upd()};
+ upd()}
+
+const h=/^#privado(?:=(\d{4}-[1234]))?$/.exec(location.hash);
+h?priv(h[1]||""):setup();
+</script>
+</body>
+</html>
